@@ -28,56 +28,66 @@
       <config>
         <basepath>/milieu/sparql/</basepath>
         <!--<auto404/>-->
-        <endpoint>
-          <meta>
-            <rest>
-              <method>POST</method>
-              <simple>query</simple>
-              <!--<produces>application/sparql-results+json</produces>
-                  <consumes>application/x-www-form-urlencoded</consumes>-->
-            </rest>
-          </meta>
-          <grammar>
-            <active>
-              <identifier>active:sparqlPost</identifier>
-            </active>
-          </grammar>
-          <request>
-            <identifier>active:java</identifier>
-            <argument name="class">SparqlQueryExecutor</argument>
-            <varargs/>
-          </request>
-        </endpoint>
-        <endpoint>
-          <meta>
-            <rest>
-              <method>GET</method>
-              <simple>query</simple>
-              <!--<produces>application/sparql-results+json</produces>-->
-            </rest>
-          </meta>
-          <grammar>
-            <identifier>active:sparqlGet</identifier>
-          </grammar>
-          <request>
-            <identifier>active:java</identifier>
-            <argument name="class">SparqlQueryExecutor</argument>
-            <varargs/>
-          </request>
-        </endpoint>
       </config>
       <space>
-        <import>
-          <uri>urn:org:netkernel:ext:layer1</uri>
-        </import>
+        <mapper>
+          <config>
+            <endpoint>
+              <meta>
+                <rest>
+                  <method>POST</method>
+                  <simple>query</simple>
+                  <!--<produces>application/sparql-results+json</produces>
+                      <consumes>application/x-www-form-urlencoded</consumes>-->
+                </rest>
+              </meta>
+              <grammar>
+                <active>
+                  <identifier>active:sparqlPost</identifier>
+                </active>
+              </grammar>
+              <request>
+                <identifier>active:java</identifier>
+                <argument name="class">SparqlQueryExecutor</argument>
+                <varargs/>
+              </request>
+            </endpoint>
+            <endpoint>
+              <meta>
+                <rest>
+                  <method>GET</method>
+                  <simple>query</simple>
+                  <!--<produces>application/sparql-results+json</produces>-->
+                </rest>
+              </meta>
+              <grammar>
+                <active>
+                  <identifier>active:sparqlGet</identifier>
+                </active>
+              </grammar>
+              <request>
+                <identifier>active:java</identifier>
+                <argument name="class">SparqlQueryExecutor</argument>
+                <varargs/>
+              </request>
+            </endpoint>
+          </config>
+          <space>
+            <import>
+              <uri>urn:org:netkernel:ext:layer1</uri>
+            </import>
+          </space>
+        </mapper>
       </space>
     </overlay>
     <import>
+      <private/>
       <uri>urn:org:netkernel:tpt:http</uri>
     </import>
-    <import>
-      <uri>urn:org:netkernel:client:http</uri>
-    </import>
+    <!--<import>
+        <private/>
+        <uri>urn:org:netkernel:client:http</uri>
+        </import>-->
   </rootspace>
 
 </module>
