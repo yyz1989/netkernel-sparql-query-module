@@ -67,7 +67,7 @@
               </grammar>
               <request>
                 <identifier>active:java</identifier>
-                <argument name="class">SparqlQueryExecutor</argument>
+                <argument name="class">resources.endpoints.SparqlQueryExecutor</argument>
                 <varargs/>
               </request>
             </endpoint>
@@ -84,10 +84,10 @@
       <private/>
       <uri>urn:org:netkernel:tpt:http</uri>
     </import>
-    <!--<import>
-        <private/>
-        <uri>urn:org:netkernel:client:http</uri>
-        </import>-->
+    <import>
+      <private/>
+      <uri>urn:org:netkernel:client:http</uri>
+    </import>
   </rootspace>
 
 </module>
