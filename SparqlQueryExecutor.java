@@ -1,4 +1,3 @@
-package resources.endpoints;
 
 import org.netkernel.layer0.nkf.INKFRequest;
 import org.netkernel.layer0.nkf.INKFRequestContext;
