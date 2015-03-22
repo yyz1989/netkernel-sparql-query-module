@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module version="2.0">
+  <meta>
+    <identity>
+      <uri>urn:be:proxml:milieu:sparql</uri>
+      <version>1.0.0</version>
+    </identity>
+
+    <info>
+      <name>SPARQL Query Module</name>
+      <description>A netkernel module to query external SPARQL endpoints</description>
+    </info>
+  </meta>
+
+  <system>
+    <dynamic/>
+  </system>
+
+  <rootspace
+      name="SPARQL Query Module - Services"
+      public="true"
+      uri="urn:be:proxml:milieu:sparql:services">
+    <fileset>
+      <regex>res:/etc/system/SimpleDynamicImportHook.xml</regex>
+    </fileset>
+    <overlay>
+      <prototype>RESTOverlay</prototype>
+      <config>
+        <basepath>/milieu/sparql</basepath>
+        <auto404/>
+      </config>
+
+      <endpoint>
+        <meta>
+          <rest>
+            <method>POST</method>
+            <simple>query</simple>
+            <produces>application/sparql-results+json; charset=utf-8</produces>
+            <consumes>application/x-www-form-urlencoded; charset=UTF-8</consumes>
+          </rest>
+        </meta>
+        <grammar>
+          <active>
+            <identifier>active:sparqlGet</identifier>
+          </active>
+        </grammar>
+        <request>
+          <identifier>active:java</identifier>
+          <argument name="class">resources.endpoints.SparqlQueryExecutor</argument>
+          <!--      <argument name="host">
+               <literal type="string">localhost</literal>
+               </argument>
+               <argument name="port">
+               <literal type="string">3030</literal>
+               </argument>-->
+        </request>
+      </endpoint>
+      <space>
+        <import>
+          <uri>urn:org:netkernel:ext:layer1</uri>
+        </import>
+      </space>
+    </overlay>
+    <import>
+      <private/>
+      <uri>urn:org:netkernel:tpt:http</uri>
+    </import>
+    <import>
+      <private/>
+      <uri>urn:org:netkernel:client:http</uri>
+    </import>
+
+  </rootspace>
