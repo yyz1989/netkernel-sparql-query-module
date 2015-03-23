@@ -49,6 +49,16 @@
               <request>
                 <identifier>active:java</identifier>
                 <argument name="class">resources.endpoints.SparqlQueryExecutor</argument>
+                <argument name="connection">
+                  <literal type="hds">
+                    <connection>
+                      <host>http://localhost</host>
+                      <port>3030</port>
+                      <dataset>tdb</dataset>
+                      <operation>query</operation>
+                    </connection>
+                  </literal>
+                </argument>
                 <varargs/>
               </request>
             </endpoint>
