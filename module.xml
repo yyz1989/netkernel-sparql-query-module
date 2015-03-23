@@ -27,7 +27,7 @@
       <prototype>RESTOverlay</prototype>
       <config>
         <basepath>/milieu/sparql/</basepath>
-        <!--<auto404/>-->
+        <auto404/>
       </config>
       <space>
         <mapper>
@@ -35,7 +35,7 @@
             <endpoint>
               <meta>
                 <rest>
-                  <method>POST</method>
+                  <method>GET,POST</method>
                   <simple>query</simple>
                   <!--<produces>application/sparql-results+json</produces>
                       <consumes>application/x-www-form-urlencoded</consumes>-->
@@ -43,26 +43,7 @@
               </meta>
               <grammar>
                 <active>
-                  <identifier>active:sparqlPost</identifier>
-                </active>
-              </grammar>
-              <request>
-                <identifier>active:java</identifier>
-                <argument name="class">SparqlQueryExecutor</argument>
-                <varargs/>
-              </request>
-            </endpoint>
-            <endpoint>
-              <meta>
-                <rest>
-                  <method>GET</method>
-                  <simple>query</simple>
-                  <!--<produces>application/sparql-results+json</produces>-->
-                </rest>
-              </meta>
-              <grammar>
-                <active>
-                  <identifier>active:sparqlGet</identifier>
+                  <identifier>active:sparqlQuery</identifier>
                 </active>
               </grammar>
               <request>
