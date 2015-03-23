@@ -48,7 +48,7 @@
               </grammar>
               <request>
                 <identifier>active:java</identifier>
-                <argument name="class">resources.endpoints.SparqlQueryExecutor</argument>
+                <argument name="class">resources.endpoints.SparqlQueryAccessor</argument>
                 <argument name="connection">
                   <literal type="hds">
                     <connection>
