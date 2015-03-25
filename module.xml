@@ -44,20 +44,43 @@
               <grammar>
                 <active>
                   <identifier>active:sparqlQuery</identifier>
+                  <argument name="endpoint" min="0" max="1"/>
+                  <argument name="dataset" min="0" max="1"/>
+                  <argument name="operation" min="0" max="1"/>
+                  <argument name="httpmethod" min="0" max="1"/>
+                  <argument name="query" min="0" max="1"/>
+                  <argument name="accept" min="0" max="1"/>
+                  <argument name="acceptencoding" min="0" max="1"/>
+                  <argument name="acceptlang" min="0" max="1"/>
+                  <varargs/>
                 </active>
               </grammar>
               <request>
                 <identifier>active:java</identifier>
                 <argument name="class">resources.endpoints.SparqlQueryAccessor</argument>
-                <argument name="connection">
-                  <literal type="hds">
-                    <connection>
-                      <host>http://localhost</host>
-                      <port>3030</port>
-                      <dataset>tdb</dataset>
-                      <operation>query</operation>
-                    </connection>
-                  </literal>
+                <argument name="endpoint">
+                  <literal type="string">http://localhost:3030</literal>
+                </argument>
+                <argument name="dataset">
+                  <literal type="string">/tdb/</literal>
+                </argument>
+                <argument name="operation">
+                  <literal type="string">query</literal>
+                </argument>
+                <argument method="as-string" name="httpmethod">
+                  arg:httpmethod
+                </argument>
+                <argument method="as-string" name="query">
+                  arg:query
+                </argument>
+                <argument method="as-string" name="accept">
+                  arg:accept
+                </argument>
+                <argument method="as-string" name="acceptencoding">
+                  arg:acceptencoding
+                </argument>
+                <argument method="as-string" name="acceptlang">
+                  arg:acceptlang
                 </argument>
                 <varargs/>
               </request>
@@ -80,5 +103,44 @@
       <uri>urn:org:netkernel:client:http</uri>
     </import>
   </rootspace>
+
+  <rootspace
+      name="SPARQL Query Module - Test"
+      public="true"
+      uri="urn:be:proxml:milieu:sparql:test">
+    <fileset>
+      <regex>res:/etc/system/Tests.xml</regex>
+    </fileset>
+    <fileset>
+      <regex>res:/resources/tests/.*</regex>
+    </fileset>
+
+    <endpoint>
+      <prototype>Limiter</prototype>
+      <grammar>res:/etc/
+      <regex type="anything"/>
+      </grammar>
+    </endpoint>
+
+    <import>
+      <uri>urn:be:proxml:milieu:sparql:services</uri>
+    </import>
+    <import>
+      <uri>urn:org:netkernel:ext:layer1</uri>
+      <private/>
+    </import>
+  </rootspace>
+
+<rootspace
+      name="SPARQL Query Module - Documentation"
+      public="true"
+      uri="urn:be:proxml:milieu:sparql:doc">
+<fileset>
+<regex>res:/etc/system/(Books|Docs).xml</regex>
+</fileset>
+<fileset>
+<regex>res:/resources/doc/.*</regex>
+</fileset>
+</rootspace>
 
 </module>
