@@ -99,7 +99,7 @@
       <uri>urn:org:netkernel:tpt:http</uri>
     </import>
     <import>
-      <private/>
+     
       <uri>urn:org:netkernel:client:http</uri>
     </import>
   </rootspace>

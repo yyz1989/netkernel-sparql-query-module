@@ -57,6 +57,7 @@ public class SparqlQueryAccessor extends StandardAccessorImpl
 
         // URL of the SPARQL endpoint to be accessed
         String path = endpoint + dataset + operation;
+
         String query;
         if (context.exists("httpRequest:/param/query"))
             query = context.source("httpRequest:/param/query", String.class);
@@ -100,7 +101,7 @@ public class SparqlQueryAccessor extends StandardAccessorImpl
 
         context.logRaw(
                 INKFRequestContext.LEVEL_INFO,
-                "Received SPARQL Query " + httpMethod + " Request: " + query
+                "Received SPARQL Query " + httpMethod + " Request: " + query + " to endpoint: " + path
         );
 
         response = context.issueRequestForResponse(request);
