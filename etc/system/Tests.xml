@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tests>
+  <test>
+    <id>test:urn:be:proxml:milieu:sparql</id>
+    <name>SPARQL Query Module</name>
+    <desc>SPARQL Query Module Unit Tests</desc>
+    <uri>res:/resources/tests/testlist.xml</uri>
+  </test>
+</tests>
