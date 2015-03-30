@@ -2,7 +2,7 @@
 <module version="2.0">
   <meta>
     <identity>
-      <uri>urn:be:proxml:milieu:sparql</uri>
+      <uri>urn:be:proxml:module:sparql</uri>
       <version>1.0.0</version>
     </identity>
 
@@ -19,14 +19,14 @@
   <rootspace
       name="SPARQL Query Module - Services"
       public="true"
-      uri="urn:be:proxml:milieu:sparql:services">
+      uri="urn:be:proxml:module:sparql:services">
     <fileset>
       <regex>res:/etc/system/SimpleDynamicImportHook.xml</regex>
     </fileset>
     <overlay>
       <prototype>RESTOverlay</prototype>
       <config>
-        <basepath>/milieu/sparql/</basepath>
+        <basepath>/module/sparql/</basepath>
         <auto404/>
       </config>
       <space>
@@ -107,7 +107,7 @@
   <rootspace
       name="SPARQL Query Module - Test"
       public="true"
-      uri="urn:be:proxml:milieu:sparql:test">
+      uri="urn:be:proxml:module:sparql:test">
     <fileset>
       <regex>res:/etc/system/Tests.xml</regex>
     </fileset>
@@ -123,7 +123,7 @@
     </endpoint>
 
     <import>
-      <uri>urn:be:proxml:milieu:sparql:services</uri>
+      <uri>urn:be:proxml:module:sparql:services</uri>
     </import>
     <import>
       <uri>urn:org:netkernel:ext:layer1</uri>
@@ -134,7 +134,7 @@
 <rootspace
       name="SPARQL Query Module - Documentation"
       public="true"
-      uri="urn:be:proxml:milieu:sparql:doc">
+      uri="urn:be:proxml:module:sparql:doc">
 <fileset>
 <regex>res:/etc/system/(Books|Docs).xml</regex>
 </fileset>
