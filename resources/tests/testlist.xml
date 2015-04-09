@@ -4,7 +4,7 @@
     <request>
       <verb>SOURCE</verb>      
       <identifier>active:httpGet</identifier>
-      <argument name="url">http://localhost:8080/milieu/sparql/query?query=select (count (*) as ?cnt) where {?s ?p ?o} limit 1</argument>
+      <argument name="url">http://localhost:8080/module/sparql/query?query=select (count (*) as ?cnt) where {?s ?p ?o} limit 1</argument>
       <argument name="headers">
         <literal type="hds">
           <Accept>application/sparql-results+json</Accept>
@@ -20,7 +20,7 @@
     <request>
       <verb>SOURCE</verb>      
       <identifier>active:httpPost</identifier>
-      <argument name="url">http://localhost:8080/milieu/sparql/query</argument>
+      <argument name="url">http://localhost:8080/module/sparql/query</argument>
       <argument name="nvp">
         <literal type="hds">
           <query>select (count (*) as ?cnt) where {?s ?p ?o} limit 1</query>

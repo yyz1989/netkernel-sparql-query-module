@@ -26,7 +26,7 @@
     <overlay>
       <prototype>RESTOverlay</prototype>
       <config>
-        <basepath>/milieu/sparql/</basepath>
+        <basepath>/module/sparql/</basepath>
         <auto404/>
       </config>
       <space>
@@ -57,7 +57,7 @@
               </grammar>
               <request>
                 <identifier>active:java</identifier>
-                <argument name="class">resources.endpoints.SparqlQueryAccessor</argument>
+                <argument name="class">be.proxml.module.sparql.SparqlQueryAccessor</argument>
                 <argument name="endpoint">
                   <literal type="string">http://localhost:3030</literal>
                 </argument>

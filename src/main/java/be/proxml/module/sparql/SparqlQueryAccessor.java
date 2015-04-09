@@ -1,4 +1,4 @@
-package resources.endpoints;
+package be.proxml.module.sparql;
 /**
  * A SPARQL query client for Netkernel
  * @author Proxml
