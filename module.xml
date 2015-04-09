@@ -48,7 +48,7 @@
                 <active>
                   <identifier>active:sparqlQuery</identifier>
                   <argument name="endpoint" min="0" max="1"/>
-                  <argument name="dataset" min="0" max="1"/>
+                  <argument name="requestpath" min="0" max="1"/>
                   <argument name="operation" min="0" max="1"/>
                   <argument name="httpmethod" min="0" max="1"/>
                   <argument name="query" min="0" max="1"/>
@@ -61,13 +61,13 @@
               <request>
                 <identifier>active:java</identifier>
                 <argument name="class">be.proxml.module.sparql.SparqlQueryAccessor</argument>
-                <argument name="endpoint">
+                <argument method="as-string" name="endpoint">
                   arg:endpoint
                 </argument>
-                <argument name="dataset">
-                  arg:dataset
+                <argument method="as-string" name="requestpath">
+                  arg:requestpath
                 </argument>
-                <argument name="operation">
+                <argument method="as-string" name="operation">
                   arg:operation
                 </argument>
                 <argument method="as-string" name="httpmethod">

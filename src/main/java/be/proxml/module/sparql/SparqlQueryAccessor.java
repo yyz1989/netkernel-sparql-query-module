@@ -8,6 +8,8 @@ import org.netkernel.layer0.representation.IHDSNode;
 import org.netkernel.layer0.representation.impl.HDSBuilder;
 import org.netkernel.module.standard.endpoint.StandardAccessorImpl;
 
+import java.net.URLEncoder;
+
 /**
  * A Netkernel accessor handling the incoming SPARQL query requests
  */
@@ -27,6 +29,7 @@ public class SparqlQueryAccessor extends StandardAccessorImpl
         String httpMethod;
         IHDSNode headers;
         boolean hasHeadersFromHTTP;
+
         if (context.exists("httpRequest:/method"))
             httpMethod = context.source("httpRequest:/method", String.class);
         else if (context.exists("arg:httpmethod"))
@@ -67,6 +70,14 @@ public class SparqlQueryAccessor extends StandardAccessorImpl
         else if (context.exists("arg:query"))
             query = context.source("arg:query", String.class);
         else throw new NKFException("The request does include the required argument \"query\"");
+
+        String encodedQuery = path + "?" + operation + "=" + URLEncoder.encode(query, "UTF-8");
+        if (encodedQuery.getBytes("UTF-8").length >= 4000 && httpMethod.equals("GET")) {
+            context.logRaw(
+                    INKFRequestContext.LEVEL_WARNING,
+                    "Warning: Received GET request with a SPARQL Query greater than 4KB!"
+            );
+        }
 
         if (httpMethod.equals("GET")) {
             request = context.createRequest("active:httpGet");
