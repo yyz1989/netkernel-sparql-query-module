@@ -23,6 +23,9 @@
     <fileset>
       <regex>res:/etc/system/SimpleDynamicImportHook.xml</regex>
     </fileset>
+    <fileset>
+      <regex>res:/etc/system/DefaultConnection.xml</regex>
+    </fileset>
     <overlay>
       <prototype>RESTOverlay</prototype>
       <config>
@@ -59,13 +62,13 @@
                 <identifier>active:java</identifier>
                 <argument name="class">be.proxml.module.sparql.SparqlQueryAccessor</argument>
                 <argument name="endpoint">
-                  <literal type="string">http://localhost:3030</literal>
+                  arg:endpoint
                 </argument>
                 <argument name="dataset">
-                  <literal type="string">/tdb/</literal>
+                  arg:dataset
                 </argument>
                 <argument name="operation">
-                  <literal type="string">query</literal>
+                  arg:operation
                 </argument>
                 <argument method="as-string" name="httpmethod">
                   arg:httpmethod

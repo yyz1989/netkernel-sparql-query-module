@@ -31,7 +31,7 @@ public class SparqlQueryAccessor extends StandardAccessorImpl
             httpMethod = context.source("httpRequest:/method", String.class);
         else if (context.exists("arg:httpmethod"))
             httpMethod = context.source("arg:httpmethod", String.class).toUpperCase();
-        else throw new NKFException("The equest does include the required argument \"httpmethod\"");
+        else throw new NKFException("The request does include the required argument \"httpmethod\"");
 
         if (context.exists("httpRequest:/headers")) {
             headers = context.source("httpRequest:/headers", IHDSNode.class).getRoot();
@@ -51,12 +51,13 @@ public class SparqlQueryAccessor extends StandardAccessorImpl
             headers = headerBuilder.getRoot();
             hasHeadersFromHTTP = false;
         }
-        String endpoint = context.source("arg:endpoint", String.class);
-        String dataset = context.source("arg:dataset", String.class);
-        String operation = context.source("arg:operation", String.class);
 
+        IHDSNode connection = context.source("res:/etc/system/DefaultConnection.xml", IHDSNode.class);
+        String endpoint = connection.getFirstValue("//endpoint").toString();
+        String requestpath = connection.getFirstValue("//requestpath").toString();
+        String operation = connection.getFirstValue("//operation").toString();
         // URL of the SPARQL endpoint to be accessed
-        String path = endpoint + dataset + operation;
+        String path = endpoint + requestpath;
 
         String query;
         if (context.exists("httpRequest:/param/query"))
