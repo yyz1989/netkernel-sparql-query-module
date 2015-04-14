@@ -88,6 +88,43 @@
                 <varargs/>
               </request>
             </endpoint>
+            <endpoint>
+              <meta>
+                <rest>
+                  <method>GET</method>
+                  <simple>search</simple>
+                  <!--<produces>application/sparql-results+json</produces>
+                      <consumes>application/x-www-form-urlencoded</consumes>-->
+                </rest>
+              </meta>
+              <grammar>
+                <active>
+                  <identifier>active:keywordSearch</identifier>
+                  <argument name="endpoint" min="0" max="1"/>
+                  <argument name="requestpath" min="0" max="1"/>
+                  <argument name="query" min="0" max="1"/>
+                  <argument name="accept" min="0" max="1"/>
+                  <varargs/>
+                </active>
+              </grammar>
+              <request>
+                <identifier>active:java</identifier>
+                <argument name="class">be.proxml.module.sparql.KeywordSearchAccessor</argument>
+                <argument method="as-string" name="endpoint">
+                  arg:endpoint
+                </argument>
+                <argument method="as-string" name="requestpath">
+                  arg:requestpath
+                </argument>              
+                <argument method="as-string" name="query">
+                  arg:query
+                </argument>
+                <argument method="as-string" name="accept">
+                  arg:accept
+                </argument>               
+                <varargs/>
+              </request>
+            </endpoint>
           </config>
           <space>
             <import>
