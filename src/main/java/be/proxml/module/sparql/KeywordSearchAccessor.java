@@ -45,7 +45,10 @@ public class KeywordSearchAccessor extends StandardAccessorImpl{
         String sparqlQuery = "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\n" +
                 "PREFIX text: <http://jena.apache.org/text#>\n" +
                 "PREFIX skos: <http://www.w3.org/2004/02/skos/core#>\n" +
+                "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n" +
+                "PREFIX dcat: <http://www.w3.org/ns/dcat#>\n" +
                 "select distinct ?id ?label where {" +
+                "   ?id a (dcat:Dataset|dcat:Download)" +
                 "   ?id text:query (rdfs:label \"" + query + "\") ;" +
                 "   rdfs:label ?label . " +
                 "}";
