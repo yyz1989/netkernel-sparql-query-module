@@ -48,9 +48,9 @@ public class KeywordSearchAccessor extends StandardAccessorImpl{
                 "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n" +
                 "PREFIX dcat: <http://www.w3.org/ns/dcat#>\n" +
                 "select distinct ?id ?label where {" +
-                "   ?id a (dcat:Dataset|dcat:Download)" +
                 "   ?id text:query (rdfs:label \"" + query + "\") ;" +
                 "   rdfs:label ?label . " +
+                "   {?id a dcat:Dataset} union {?id a dcat:Download} ." +
                 "}";
 
         request = context.createRequest("active:httpGet");
