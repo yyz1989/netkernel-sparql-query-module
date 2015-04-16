@@ -134,7 +134,7 @@
             <endpoint>
               <meta>
                 <rest>
-                  <method>GET</method>
+                  <method>GET,POST</method>
                   <simple>fragments</simple>
                   <!--<produces>application/sparql-results+json</produces>
                       <consumes>application/x-www-form-urlencoded</consumes>-->
