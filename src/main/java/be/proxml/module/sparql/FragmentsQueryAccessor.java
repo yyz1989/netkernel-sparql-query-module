@@ -243,7 +243,13 @@ public class FragmentsQueryAccessor extends StandardAccessorImpl {
         body.pushNode("query", fragments);
         fragmentsQueryRequest.addArgumentByValue("nvp", body.getRoot());
         fragmentsQueryRequest.addArgumentByValue("headers", headers);
+
         Object sparqlResult = context.issueRequestForResponse(fragmentsQueryRequest);
+
+        context.logRaw(
+                INKFRequestContext.LEVEL_INFO,
+                "Received SPARQL Fragments Search Request to endpoint: " + path
+        );
         response = context.createResponseFrom(sparqlResult);
     }
 }
