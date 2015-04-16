@@ -22,8 +22,7 @@
       uri="urn:be:proxml:module:sparql:services">
     <fileset>
       <regex>res:/etc/system/SimpleDynamicImportHook.xml</regex>
-    </fileset>
-    <fileset>
+b    <fileset>
       <regex>res:/etc/system/DefaultConnection.xml</regex>
     </fileset>
     <fileset>
@@ -196,6 +195,10 @@
     <import>
       <private/>
       <uri>urn:org:netkernel:tpt:http</uri>
+    </import>
+    <import>
+      <private/>
+      <uri>urn:org:netkernel:lang:freemarker</uri>
     </import>
     <import>
      
