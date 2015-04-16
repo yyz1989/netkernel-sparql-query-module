@@ -22,7 +22,8 @@
       uri="urn:be:proxml:module:sparql:services">
     <fileset>
       <regex>res:/etc/system/SimpleDynamicImportHook.xml</regex>
-b    <fileset>
+    </fileset>
+    <fileset>
       <regex>res:/etc/system/DefaultConnection.xml</regex>
     </fileset>
     <fileset>
