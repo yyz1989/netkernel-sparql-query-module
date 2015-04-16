@@ -37,6 +37,22 @@
     </assert>
   </test>
 
+  <test name="SPARQL Query Test: GET with Identifier">
+    <request>
+      <verb>SOURCE</verb>
+      <identifier>active:sparqlQuery</identifier>
+      <argument name="endpoint">http://localhost:3030</argument>
+      <argument name="requestpath">/tdb/query</argument>
+      <argument name="operation">query</argument>
+      <argument name="httpmethod">get</argument>
+      <argument name="query">select (count (*) as ?cnt) where {?s ?p ?o} limit 1</argument>
+      <argument name="accept">application/sparql-results+json</argument>
+    </request>
+    <assert>
+      <mimetype>application/sparql-results+json</mimetype>
+    </assert>
+  </test>
+
 <!--  <test name="Invoke service by endpoint">
     <request>
       <identifier>meta:firstmodule:helloEP</identifier>
