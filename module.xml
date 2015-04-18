@@ -205,6 +205,9 @@
      
       <uri>urn:org:netkernel:client:http</uri>
     </import>
+    <import>
+      <uri>urn:org:netkernel:xml:core</uri>
+    </import>
   </rootspace>
 
   <rootspace

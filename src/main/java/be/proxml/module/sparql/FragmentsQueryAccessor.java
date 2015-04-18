@@ -19,34 +19,32 @@ public class FragmentsQueryAccessor extends StandardAccessorImpl {
         this.declareArgument(new SourcedArgumentMetaImpl("subject",null,null,new Class[] {String.class}));
         this.declareArgument(new SourcedArgumentMetaImpl("predicate",null,null,new Class[] {String.class}));
         this.declareArgument(new SourcedArgumentMetaImpl("object",null,null,new Class[] {String.class}));
-        this.declareArgument(new SourcedArgumentMetaImpl("limit",null,null,new Class[] {Long.class}));
         this.declareArgument(new SourcedArgumentMetaImpl("offset",null,null,new Class[] {Long.class}));
     }
 
     public void onSource(INKFRequestContext context) throws Exception {
 
         INKFResponseReadOnly response;
-        INKFRequest request;
-        IHDSNode headers;
+        INKFRequest fragmentsQueryRequest;
+        IHDSNode acceptHeader;
         HDSBuilder headerBuilder = new HDSBuilder();
-        if (context.exists("httpRequest:/headers")) {
-            headers = context.source("httpRequest:/headers", IHDSNode.class).getRoot();
+        if (context.exists("httpRequest:/header/Accept")) {
+            headerBuilder.addNode("Accept", context.source("httpRequest:/header/Accept", String.class));
         }
         else if (context.exists("arg:accept")) {
             headerBuilder.addNode("Accept", context.source("arg:accept", String.class));
-            headers = headerBuilder.getRoot();
         }
         else {
             headerBuilder.addNode("Accept", "application/sparql-results+xml");
-            headers = headerBuilder.getRoot();
         }
+        acceptHeader = headerBuilder.getRoot();
 
         String path;
         if (context.exists("httpRequest:/param/requestpath")) {
             path = context.source("httpRequest:/param/requestpath", String.class);
         }
         else if (context.exists("arg:requestpath")) {
-            path = context.source("arg:accept", String.class);
+            path = context.source("arg:requestpath", String.class);
         }
         else {
             IHDSNode connection = context.source("res:/etc/system/DefaultConnection.xml", IHDSNode.class);
@@ -236,20 +234,20 @@ public class FragmentsQueryAccessor extends StandardAccessorImpl {
         fragmentsQueryBuild.setRepresentationClass(String.class);
         String fragments = (String)context.issueRequest(fragmentsQueryBuild);
 
-        INKFRequest fragmentsQueryRequest = context.createRequest("active:httpPost");
+        fragmentsQueryRequest = context.createRequest("active:httpPost");
         fragmentsQueryRequest.setVerb(INKFRequestReadOnly.VERB_SOURCE);
         fragmentsQueryRequest.addArgument("url", path);
         HDSBuilder body = new HDSBuilder();
         body.pushNode("query", fragments);
         fragmentsQueryRequest.addArgumentByValue("nvp", body.getRoot());
-        fragmentsQueryRequest.addArgumentByValue("headers", headers);
-
-        Object sparqlResult = context.issueRequestForResponse(fragmentsQueryRequest);
+        fragmentsQueryRequest.addArgumentByValue("headers", acceptHeader);
 
         context.logRaw(
                 INKFRequestContext.LEVEL_INFO,
                 "Received SPARQL Fragments Search Request to endpoint: " + path
         );
-        response = context.createResponseFrom(sparqlResult);
+
+        response = context.issueRequestForResponse(fragmentsQueryRequest);
+        context.createResponseFrom(response);
     }
 }
