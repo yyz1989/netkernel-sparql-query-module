@@ -14,56 +14,69 @@ public class KeywordSearchAccessor extends StandardAccessorImpl{
     {
         INKFResponseReadOnly response;
         INKFRequest request;
-        IHDSNode headers;
-        if (context.exists("httpRequest:/headers")) {
-            headers = context.source("httpRequest:/headers", IHDSNode.class).getRoot();
-        }
-        else if (context.exists("arg:accept")) {
-            HDSBuilder headerBuilder = new HDSBuilder();
-            headerBuilder.addNode("Accept", context.source("arg:accept", String.class));
-            headers = headerBuilder.getRoot();
-        }
-        else {
-            HDSBuilder headerBuilder = new HDSBuilder();
-            headerBuilder.addNode("Accept", "application/sparql-results+xml");
-            headers = headerBuilder.getRoot();
-        }
-        IHDSNode connection = context.source("res:/etc/system/DefaultConnection.xml", IHDSNode.class);
-        String endpoint = connection.getFirstValue("//endpoint").toString();
-        String requestpath = connection.getFirstValue("//requestpath").toString();
-        String path = endpoint + requestpath;
-
+        boolean isHTTPRequest = true;
         String query;
-        if (context.exists("httpRequest:/param/query"))
-            query = context.source("httpRequest:/param/query", String.class);
+        if (context.exists("arg:query")) {
+            query = context.source("arg:query", String.class);
+            isHTTPRequest = false;
+        }
         else if (context.exists("httpRequest:/postparam/query"))
             query = context.source("httpRequest:/postparam/query", String.class);
-        else if (context.exists("arg:query"))
-            query = context.source("arg:query", String.class);
+        else if (context.exists("httpRequest:/param/query"))
+            query = context.source("httpRequest:/param/query", String.class);
         else throw new NKFException("The request does include the required argument \"query\"");
 
-        String sparqlQuery = "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\n" +
-                "PREFIX text: <http://jena.apache.org/text#>\n" +
-                "PREFIX skos: <http://www.w3.org/2004/02/skos/core#>\n" +
-                "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n" +
-                "PREFIX dcat: <http://www.w3.org/ns/dcat#>\n" +
-                "select distinct ?id ?label where {" +
-                "   ?id text:query (rdfs:label \"" + query + "\") ;" +
-                "   rdfs:label ?label . " +
-                "   {?id a dcat:Dataset} union {?id a dcat:Download} ." +
-                "}";
+        if (query.equals("")) throw new NKFException("The required argument \"query\" must not be empty");
 
-        request = context.createRequest("active:httpGet");
-        request.setVerb(INKFRequestReadOnly.VERB_SOURCE);
-        request.addArgument("url", path + "?query=" + URLEncoder.encode(sparqlQuery, "UTF-8"));
-        request.addArgumentByValue("headers", headers);
+        String defaultEndpoint = context.source("sparql:endpoint", String.class);
+        String endpoint, limit, accept, acceptEncoding, acceptLang;
+        if (isHTTPRequest) {
+            endpoint = getArg("httpRequest:/param/endpoint", defaultEndpoint, String.class, context);
+            accept = getArg("httpRequest:/header/Accept", "application/sparql-results+xml", String.class, context);
+            acceptEncoding = getArg("httpRequest:/header/Accept-Encoding", null, String.class, context);
+            acceptLang = getArg("httpRequest:/header/Accept-Lang", null, String.class, context);
+            limit = getArg("httpRequest:/param/limit", null, String.class, context);
+        }
+        else {
+            endpoint = getArg("arg:endpoint", defaultEndpoint, String.class, context);
+            accept = getArg("arg:accept", "application/sparql-results+xml", String.class, context);
+            acceptEncoding = getArg("arg:acceptencoding", null, String.class, context);
+            acceptLang = getArg("arg:acceptlang", null, String.class, context);
+            limit = getArg("arg:limit", null, String.class, context);
+        }
+
+        INKFRequest keywordSearchQueryBuild = context.createRequest("active:freemarker");
+        keywordSearchQueryBuild.addArgument("operator", "res:/resources/freemarker/keywordsearch.freemarker");
+        keywordSearchQueryBuild.addArgumentByValue("keyword", query);
+        if (limit != null) keywordSearchQueryBuild.addArgumentByValue("limit", limit);
+        Object keywordSearchQuery = context.issueRequest(keywordSearchQueryBuild);
+
+        request = context.createRequest("active:sparqlQuery");
+        request.addArgumentByValue("endpoint", endpoint);
+        request.addArgumentByValue("query", keywordSearchQuery);
+        request.addArgumentByValue("accept", accept);
+        if (acceptEncoding != null) request.addArgumentByValue("Accept-Encoding", acceptEncoding);
+        if (acceptLang != null) request.addArgumentByValue("Accept-Language", acceptLang);
 
         context.logRaw(
                 INKFRequestContext.LEVEL_INFO,
-                "Received SPARQL Keyword Search Request: " + query + " to endpoint: " + path
+                "Received SPARQL Keyword Search Request: " + query + " to endpoint: " + endpoint
         );
 
         response = context.issueRequestForResponse(request);
         context.createResponseFrom(response);
+    }
+
+    private <T> T getArg(String identifier, T defaultValue, Class<T> classType, INKFRequestContext context) throws NKFException{
+        T arg;
+        try {
+            if (context.exists(identifier))
+                arg = context.source(identifier, classType);
+            else arg = defaultValue;
+        } catch (Exception e) {
+            arg = defaultValue;
+            return  arg;
+        }
+        return arg;
     }
 }

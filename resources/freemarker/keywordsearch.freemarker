@@ -1,0 +1,38 @@
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX text: <http://jena.apache.org/text#>
+PREFIX dcat: <http://www.w3.org/ns/dcat#>
+PREFIX org: <http://www.w3.org/ns/org#>
+PREFIX cc: <http://creativecommons.org/ns#>
+
+select distinct ?id ?label where {
+{
+<#if limit??>
+    ?id text:query (rdfs:label "${keyword}" ${limit})
+<#else>
+    ?id text:query (rdfs:label "${keyword}")
+</#if>
+} union
+{
+<#if limit??>
+    ?id text:query (skos:prefLabel "${keyword}" ${limit})
+<#else>
+    ?id text:query (skos:prefLabel "${keyword}")
+</#if>
+} union
+{
+<#if limit??>
+    ?id text:query (skos:altLabel "${keyword}" ${limit})
+<#else>
+    ?id text:query (skos:altLabel "${keyword}")
+</#if>
+}
+    {?id a dcat:Dataset}
+    union {?id a dcat:Download}
+    union {?id a skos:Concept}
+    union {?id a cc:License}
+    union {?id a org:Organization}
+    ?id rdfs:label|skos:prefLabel|skos:altLabel ?label .
+}
