@@ -33,7 +33,9 @@ public class FragmentsQueryAccessor extends StandardAccessorImpl {
         else throw new NKFException("The request does include the required argument \"dataset\"");
 
         String fragmentsRequestPath;
-        if (context.exists("sparql:fragmentsRequestPath"))
+        if (context.exists("arg:url"))
+            fragmentsRequestPath = context.source("arg:url", String.class);
+        else if (context.exists("sparql:fragmentsRequestPath"))
             fragmentsRequestPath = context.source("sparql:fragmentsRequestPath", String.class);
         else throw new NKFException("SPARQL fragments query request path \"sparql:fragmentsRequestPath\" is not defined in the module definition!");
 
