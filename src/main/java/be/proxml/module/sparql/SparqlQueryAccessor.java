@@ -3,11 +3,11 @@ package be.proxml.module.sparql;
  * A SPARQL query client for Netkernel
  * @author Proxml
  */
+import org.netkernel.layer0.meta.impl.SourcedArgumentMetaImpl;
 import org.netkernel.layer0.nkf.*;
 import org.netkernel.layer0.representation.IHDSNode;
 import org.netkernel.layer0.representation.impl.HDSBuilder;
 import org.netkernel.module.standard.endpoint.StandardAccessorImpl;
-
 import java.net.URLEncoder;
 
 /**
@@ -15,6 +15,7 @@ import java.net.URLEncoder;
  */
 public class SparqlQueryAccessor extends StandardAccessorImpl
 {
+
     /**
      * Reaction of a Netkernel SOURCE request issued from the HTTP frontend
      * @param context the context where the Netkernel request comes from
@@ -26,97 +27,122 @@ public class SparqlQueryAccessor extends StandardAccessorImpl
         INKFRequest request;
 
         // Get query arguments
-        String httpMethod;
-        IHDSNode headers;
-        boolean hasHeadersFromHTTP;
-
-        if (context.exists("httpRequest:/method"))
-            httpMethod = context.source("httpRequest:/method", String.class);
-        else if (context.exists("arg:httpmethod"))
-            httpMethod = context.source("arg:httpmethod", String.class).toUpperCase();
-        else throw new NKFException("The request does include the required argument \"httpmethod\"");
-
-        if (context.exists("httpRequest:/headers")) {
-            headers = context.source("httpRequest:/headers", IHDSNode.class).getRoot();
-            hasHeadersFromHTTP = true;
-        }
-        else {
-            HDSBuilder headerBuilder = new HDSBuilder();
-            if (context.exists("arg:accept"))
-                headerBuilder.addNode("Accept",
-                        context.source("arg:accept", String.class));
-            if (context.exists("arg:acceptencoding"))
-                headerBuilder.addNode("Accept-Encoding",
-                        context.source("arg:acceptencoding", String.class));
-            if (context.exists("arg:acceptlang"))
-                headerBuilder.addNode("Accept-Language",
-                        context.source("arg:acceptlang", String.class));
-            headers = headerBuilder.getRoot();
-            hasHeadersFromHTTP = false;
-        }
-
-        IHDSNode connection = context.source("res:/etc/system/DefaultConnection.xml", IHDSNode.class);
-        String endpoint = connection.getFirstValue("//endpoint").toString();
-        String requestpath = connection.getFirstValue("//requestpath").toString();
-        String operation = connection.getFirstValue("//operation").toString();
-        // URL of the SPARQL endpoint to be accessed
-        String path = endpoint + requestpath;
-
+        boolean isHTTPRequest = true;
+        IHDSNode credentials;
         String query;
-        if (context.exists("httpRequest:/param/query"))
-            query = context.source("httpRequest:/param/query", String.class);
+        if (context.exists("arg:query")) {
+            query = context.source("arg:query", String.class);
+            isHTTPRequest = false;
+        }
         else if (context.exists("httpRequest:/postparam/query"))
             query = context.source("httpRequest:/postparam/query", String.class);
-        else if (context.exists("arg:query"))
-            query = context.source("arg:query", String.class);
+        else if (context.exists("httpRequest:/param/query"))
+            query = context.source("httpRequest:/param/query", String.class);
         else throw new NKFException("The request does include the required argument \"query\"");
 
-        String encodedQuery = path + "?" + operation + "=" + URLEncoder.encode(query, "UTF-8");
-        if (encodedQuery.getBytes("UTF-8").length >= 4000 && httpMethod.equals("GET")) {
+        if (context.exists("sparql:credentials"))
+            credentials = context.source("sparql:credentials", IHDSNode.class);
+        else if (context.exists("res:/etc/system/DefaultHttpCredentials.xml"))
+            credentials = context.source("res:/etc/system/DefaultHttpCredentials.xml", IHDSNode.class);
+        else throw new NKFException("Neither SPARQL endpoint credentials \"sparql:credentials\" nor default credentials config file are defined in the module definition!");
+
+        String defaultEndpoint = context.source("sparql:endpoint", String.class);
+        String endpoint, operation, httpMethod, accept, acceptEncoding, acceptLang;
+        HDSBuilder headerBuilder = new HDSBuilder();
+        if (isHTTPRequest) {
+            endpoint = getArg("httpRequest:/param/endpoint", defaultEndpoint, String.class, context);
+            operation = getArg("httpRequest:/param/operation", "query", String.class, context);
+            httpMethod = getArg("httpRequest:/method", "POST", String.class, context).toUpperCase();
+            accept = getArg("httpRequest:/header/Accept", String.class, context);
+            acceptEncoding = getArg("httpRequest:/header/Accept-Encoding", null, String.class, context);
+            acceptLang = getArg("httpRequest:/header/Accept-Lang", null, String.class, context);
+        }
+        else {
+            endpoint = getArg("arg:endpoint", defaultEndpoint, String.class, context);
+            operation = getArg("arg:operation", "query", String.class, context);
+            httpMethod = getArg("arg:method", "POST", String.class, context).toUpperCase();
+            accept = getArg("arg:accept", String.class, context);
+            acceptEncoding = getArg("arg:acceptencoding", null, String.class, context);
+            acceptLang = getArg("arg:acceptlang", null, String.class, context);
+        }
+        headerBuilder.addNode("Accept", accept);
+        if (acceptEncoding != null) headerBuilder.addNode("Accept-Encoding", acceptEncoding);
+        if (acceptLang != null) headerBuilder.addNode("Accept-Language", acceptLang);
+
+        String encodedQuery = URLEncoder.encode(query, "UTF-8");
+        String encodedRequestUrl = endpoint + "?" + operation + "=" + encodedQuery;
+        if (httpMethod.equals("GET") && encodedRequestUrl.getBytes("UTF-8").length >= 4000 ) {
+            httpMethod = "POST";
             context.logRaw(
                     INKFRequestContext.LEVEL_WARNING,
-                    "Warning: Received GET request with a SPARQL Query greater than 4KB!"
+                    "Warning: Received GET request with a SPARQL Query greater than 4KB! Converted request to POST"
             );
         }
 
         if (httpMethod.equals("GET")) {
             request = context.createRequest("active:httpGet");
-            request.setVerb(INKFRequestReadOnly.VERB_SOURCE);
-            request.addArgument("url", path + "?" + operation + "=" + query);
-            request.addArgumentByValue("headers", headers);
+            request.addArgument("url", endpoint + "?" + operation + "=" + query);
+            request.addArgumentByValue("headers", headerBuilder.getRoot());
         }
         else if (httpMethod.equals("POST")) {
-            // The body of POST must be URLencoded form data represented in HDS format
             HDSBuilder body = new HDSBuilder();
             body.pushNode("query", query);
             request = context.createRequest("active:httpPost");
-            request.setVerb(INKFRequestReadOnly.VERB_SOURCE);
-            request.addArgument("url", path);
+            request.addArgument("url", endpoint);
             request.addArgumentByValue("nvp", body.getRoot());
-            // The headers of POST must be name-value pairs in HDS format, which must be
-            // rebuilt to avoid conflicts generated during relay
-            if (hasHeadersFromHTTP) {
-                HDSBuilder newHeaders = new HDSBuilder();
-                newHeaders.addNode("Accept-Encoding", headers.getFirstValue("//Accept-Encoding"));
-                newHeaders.addNode("Accept", headers.getFirstValue("//Accept"));
-                newHeaders.addNode("Accept-Language", headers.getFirstValue("//Accept-Language"));
-                request.addArgumentByValue("headers", newHeaders.getRoot());
-            }
-            else request.addArgumentByValue("headers", headers);
-
+            request.addArgumentByValue("headers", headerBuilder.getRoot());
         }
         else {
             // Deny services for other type of HTTP requests
             request = context.createRequest("access-blocked");
-            query = "Request is not acceptable";
+            query = "Requested HTTP operation is not acceptable";
         }
 
         context.logRaw(
                 INKFRequestContext.LEVEL_INFO,
-                "Received SPARQL Query " + httpMethod + " Request: " + query + " to endpoint: " + path
+                "Received SPARQL Query " + httpMethod + " Request: " + query + " to endpoint: " + endpoint
         );
 
         response = context.issueRequestForResponse(request);
+
+        int responseCode = (Integer)response.getHeader("HTTP_ACCESSOR_STATUS_CODE_METADATA");
+        if (responseCode == 401) {
+            context.logRaw(
+                    INKFRequestContext.LEVEL_WARNING,
+                    "Warning: Request is unauthorized, retrying with credentials"
+            );
+            INKFRequest authRequest = context.createRequest("active:httpState");
+            authRequest.setVerb(INKFRequestReadOnly.VERB_NEW);
+            authRequest.addArgumentByValue("credentials", credentials);
+            Object auth = context.issueRequest(authRequest);
+            request.addArgumentByValue("state", auth);
+            response = context.issueRequestForResponse(request);
+        }
         context.createResponseFrom(response);
+    }
+
+    private <T> T getArg(String identifier, Class<T> classType, INKFRequestContext context) throws NKFException{
+        T arg;
+        try {
+            if (context.exists(identifier))
+                arg = context.source(identifier, classType);
+            else throw new NKFException("The request does include the required argument: " + identifier);
+        } catch (Exception e) {
+            throw new NKFException("An exception occurred when getting the required argument: " + identifier);
+        }
+        return arg;
+    }
+
+    private <T> T getArg(String identifier, T defaultValue, Class<T> classType, INKFRequestContext context) throws NKFException{
+        T arg;
+        try {
+            if (context.exists(identifier))
+                arg = context.source(identifier, classType);
+            else arg = defaultValue;
+        } catch (Exception e) {
+            arg = defaultValue;
+            return  arg;
+        }
+        return arg;
     }
 }

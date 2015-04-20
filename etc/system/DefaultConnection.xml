@@ -1,7 +1,0 @@
-<connsettings>
-  <endpoint>http://localhost:3030</endpoint>
-  <requestpath>/tdb/query</requestpath>
-  <operation>query</operation>
-  <username>anonymous</username>
-  <password>anonymous</password>
-</connsettings>
