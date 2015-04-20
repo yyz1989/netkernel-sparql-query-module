@@ -1,193 +1,85 @@
 package be.proxml.module.sparql;
 
 import org.netkernel.layer0.nkf.*;
+import org.netkernel.layer0.nkf.impl.NKFEndpointImpl;
 import org.netkernel.layer0.representation.IHDSNode;
 import org.netkernel.layer0.representation.impl.HDSBuilder;
 import org.netkernel.module.standard.endpoint.StandardAccessorImpl;
 import org.netkernel.layer0.meta.impl.SourcedArgumentMetaImpl;
 
 import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by yyz on 4/16/15.
  */
 public class FragmentsQueryAccessor extends StandardAccessorImpl {
-    public FragmentsQueryAccessor() {
-        this.declareThreadSafe();
-        this.declareArgument(new SourcedArgumentMetaImpl("requestpath",null,null,new Class[] {String.class}));
-        this.declareArgument(new SourcedArgumentMetaImpl("accept",null,null,new Class[] {String.class}));
-        this.declareArgument(new SourcedArgumentMetaImpl("subject",null,null,new Class[] {String.class}));
-        this.declareArgument(new SourcedArgumentMetaImpl("predicate",null,null,new Class[] {String.class}));
-        this.declareArgument(new SourcedArgumentMetaImpl("object",null,null,new Class[] {String.class}));
-        this.declareArgument(new SourcedArgumentMetaImpl("offset",null,null,new Class[] {Long.class}));
-    }
 
     public void onSource(INKFRequestContext context) throws Exception {
 
         INKFResponseReadOnly response;
         INKFRequest fragmentsQueryRequest;
-        IHDSNode acceptHeader;
-        HDSBuilder headerBuilder = new HDSBuilder();
-        if (context.exists("httpRequest:/header/Accept")) {
-            headerBuilder.addNode("Accept", context.source("httpRequest:/header/Accept", String.class));
-        }
-        else if (context.exists("arg:accept")) {
-            headerBuilder.addNode("Accept", context.source("arg:accept", String.class));
-        }
-        else {
-            headerBuilder.addNode("Accept", "application/sparql-results+xml");
-        }
-        acceptHeader = headerBuilder.getRoot();
-
-        String path;
-        if (context.exists("httpRequest:/param/requestpath")) {
-            path = context.source("httpRequest:/param/requestpath", String.class);
-        }
-        else if (context.exists("arg:requestpath")) {
-            path = context.source("arg:requestpath", String.class);
-        }
-        else {
-            IHDSNode connection = context.source("res:/etc/system/DefaultConnection.xml", IHDSNode.class);
-            String endpoint = connection.getFirstValue("//endpoint").toString();
-            String requestpath = connection.getFirstValue("//requestpath").toString();
-            path = endpoint + requestpath;
-        }
-
-        // query
-        String query = null;
-        if (context.exists("httpRequest:/param/query")) {
-            query = context.source("httpRequest:/param/query", String.class);
-        }
-        else if (context.exists("arg:query")) {
-            query = context.source("arg:query", String.class);
-        }
-        else {
-            query = "";
-        }
-        //
-
-        // dataset
-        String dataset = null;
-        if (context.exists("httpRequest:/param/dataset")) {
-            dataset = context.source("httpRequest:/param/dataset", String.class);
-        }
-        else if (context.exists("arg:dataset")) {
+        boolean isHTTPRequest = true;
+        String dataset;
+        if (context.exists("arg:dataset")) {
             dataset = context.source("arg:dataset", String.class);
+            isHTTPRequest = false;
+        }
+        else if (context.exists("httpRequest:/postparam/dataset"))
+            dataset = context.source("httpRequest:/postparam/dataset", String.class);
+        else if (context.exists("httpRequest:/param/dataset"))
+            dataset = context.source("httpRequest:/param/dataset", String.class);
+        else throw new NKFException("The request does include the required argument \"dataset\"");
+
+        String fragmentsRequestPath;
+        if (context.exists("sparql:fragmentsRequestPath"))
+            fragmentsRequestPath = context.source("sparql:fragmentsRequestPath", String.class);
+        else throw new NKFException("SPARQL fragments query request path \"sparql:fragmentsRequestPath\" is not defined in the module definition!");
+
+        String defaultEndpoint = context.source("sparql:endpoint", String.class);
+        String endpoint, query, subject, object, predicate, accept, acceptEncoding, acceptLang;
+        Object limit, offset;
+        long limitLong, offsetLong;
+
+        if (isHTTPRequest) {
+            endpoint = getArg("httpRequest:/param/endpoint", defaultEndpoint, String.class, context);
+            accept = getArg("httpRequest:/header/Accept", "application/sparql-results+xml", String.class, context);
+            acceptEncoding = getArg("httpRequest:/header/Accept-Encoding", null, String.class, context);
+            acceptLang = getArg("httpRequest:/header/Accept-Lang", null, String.class, context);
+            query = getArg("httpRequest:/query", "", String.class, context);
+            subject = getArg("httpRequest:/param/subject", "", String.class, context);
+            predicate = getArg("httpRequest:/param/predicate", "", String.class, context);
+            object = getArg("httpRequest:/param/object", "", String.class, context);
+            limit = getArg("httpRequest:/param/limit", null, String.class, context);
+            offset = getArg("httpRequest:/param/offset", null, String.class, context);
         }
         else {
-            throw new Exception("the request does not have a valid - dataset - argument");
+            endpoint = getArg("arg:endpoint", defaultEndpoint, String.class, context);
+            accept = getArg("arg:accept", "application/sparql-results+xml", String.class, context);
+            acceptEncoding = getArg("arg:acceptencoding", null, String.class, context);
+            acceptLang = getArg("arg:acceptlang", null, String.class, context);
+            query = getArg("arg:query", "", String.class, context);
+            subject = getArg("arg:subject", "", String.class, context);
+            predicate = getArg("arg:predicate", "", String.class, context);
+            object = getArg("arg:object", "", String.class, context);
+            limit = getArg("arg:limit", null, Object.class, context);
+            offset = getArg("arg:offset", null, Object.class, context);
         }
 
-        // subject
-        String subject = null;
-        if (context.exists("httpRequest:/param/subject")) {
-            subject = context.source("httpRequest:/param/subject", String.class);
-        }
-        else if (context.exists("arg:subject")) {
-            subject = context.source("arg:subject", String.class);
-        }
-        else {
-            subject = "?s";
-        }
-        if (subject.equals("")) {
-            subject = "?s";
-        }
-        else {
-            if (! subject.startsWith("<")) {
-                subject = "<" + subject + ">";
-            }
-        }
+        List<Character> allowedLiteralStarts = new ArrayList<Character>();
+        allowedLiteralStarts.add('<');
+        subject = uriify(subject, "?s", allowedLiteralStarts);
+        predicate = uriify(predicate, "?p", allowedLiteralStarts);
+        allowedLiteralStarts.add('\'');
+        allowedLiteralStarts.add('\"');
+        object = uriify(object, "?o", allowedLiteralStarts);
 
-        // predicate
-        String predicate = null;
-        if (context.exists("httpRequest:/param/predicate")) {
-            predicate = context.source("httpRequest:/param/predicate", String.class);
-        }
-        else if (context.exists("arg:predicate")) {
-            predicate = context.source("arg:predicate", String.class);
-        }
-        else {
-            predicate = "?p";
-        }
-        if (predicate.equals("")) {
-            predicate = "?p";
-        }
-        else {
-            if (! predicate.startsWith("<")) {
-                predicate = "<" + predicate + ">";
-            }
-        }
+        if (limit == null) limitLong = 100L;
+        else limitLong = objToLong(limit);
+        if (offset == null) offsetLong = 0L;
+        else offsetLong = objToLong(offset);
 
-        // object
-        String object = null;
-        if (context.exists("httpRequest:/param/object")) {
-            object = context.source("httpRequest:/param/object", String.class);
-        }
-        else if (context.exists("arg:object")) {
-            object = context.source("arg:object", String.class);
-        }
-        else {
-            object = "?o";
-        }
-        if (object.equals("")) {
-            object = "?o";
-        }
-        else {
-            if ( (! object.startsWith("<")) && (! object.startsWith("'")) && (! object.startsWith("\""))) {
-                object = "<" + object + ">";
-            }
-        }
-
-        // offset
-        Long offset = null;
-        String offsetStr = null;
-        if (context.exists("arg:offset")) {
-            try {
-                offset = context.source("arg:offset", Long.class);
-            } catch (Exception e) {
-                offsetStr = context.source("arg:offset", String.class);
-            }
-        }
-        else if (context.exists("httpRequest:/param/offset")) {
-            offsetStr = context.source("httpRequest:/param/offset", String.class);
-        }
-        else offset = 0L;
-        if (offsetStr == null || offsetStr.equals("")) {
-            offset = 0L;
-        }
-        else {
-            try {
-                offset = Long.parseLong(offsetStr);
-            } catch (Exception e) {
-                throw new Exception("the request does not have a valid - offset - argument");
-            }
-        }
-
-        // limit
-        Long limit = null;
-        String limitStr = null;
-        if (context.exists("arg:limit")) {
-            try {
-                limit = context.source("arg:limit", Long.class);
-            } catch (Exception e) {
-                limitStr = context.source("arg:limit", String.class);
-            }
-        }
-        else if (context.exists("httpRequest:/param/limit")) {
-            limitStr = context.source("httpRequest:/param/limit", String.class);
-        }
-        else limit = 100L;
-        if (limitStr == null || limitStr.equals("")) {
-            limit = 100L;
-        }
-        else {
-            try {
-                limit = Long.parseLong(limitStr);
-            } catch (Exception e) {
-                throw new Exception("the request does not have a valid - limit - argument");
-            }
-        }
-        //
         INKFRequest fragmentsCountQueryBuild = context.createRequest("active:freemarker");
         fragmentsCountQueryBuild.addArgument("operator", "res:/resources/freemarker/fragmentscount.freemarker");
         fragmentsCountQueryBuild.addArgumentByValue("subject", subject);
@@ -195,12 +87,11 @@ public class FragmentsQueryAccessor extends StandardAccessorImpl {
         fragmentsCountQueryBuild.addArgumentByValue("object", object);
         String fragmentsCountQuery = (String)context.issueRequest(fragmentsCountQueryBuild);
 
-        INKFRequest fragmentsCountQueryRequest = context.createRequest("active:httpGet");
-        fragmentsCountQueryRequest.setVerb(INKFRequestReadOnly.VERB_SOURCE);
-        fragmentsCountQueryRequest.addArgument("url", path + "?query=" + URLEncoder.encode(fragmentsCountQuery, "UTF-8"));
-        HDSBuilder countQueryHeader = new HDSBuilder();
-        countQueryHeader.addNode("Accept", "application/sparql-results+xml");
-        fragmentsCountQueryRequest.addArgumentByValue("headers", countQueryHeader.getRoot());
+        INKFRequest fragmentsCountQueryRequest = context.createRequest("active:sparqlQuery");
+        fragmentsCountQueryRequest.addArgumentByValue("endpoint", endpoint);
+        fragmentsCountQueryRequest.addArgumentByValue("query", fragmentsCountQuery);
+        fragmentsCountQueryRequest.addArgumentByValue("httpmethod", "get");
+        fragmentsCountQueryRequest.addArgumentByValue("accept", "application/sparql-results+xml");
         Object sparqlCountResult = context.issueRequest(fragmentsCountQueryRequest);
 
         INKFRequest xsltcRequest = context.createRequest("active:xsltc");
@@ -208,46 +99,108 @@ public class FragmentsQueryAccessor extends StandardAccessorImpl {
         xsltcRequest.addArgument("operator", "res:/resources/xsl/sparqlresult_to_count.xsl");
         xsltcRequest.setRepresentationClass(String.class);
         String count = (String)context.issueRequest(xsltcRequest);
-
-        Long countLong = Long.parseLong(count);
+        long countLong;
+        try {
+            countLong = Long.parseLong(count);
+        } catch (Exception e) {
+            throw new NKFException("An exception occured when parsing fragments count query results, please recheck the query");
+        }
 
         INKFRequest fragmentsQueryBuild = context.createRequest("active:freemarker");
         fragmentsQueryBuild.addArgument("operator", "res:/resources/freemarker/fragments.freemarker");
         fragmentsQueryBuild.addArgumentByValue("dataset", dataset);
         fragmentsQueryBuild.addArgumentByValue("query", (query.equals("")) ? "" : "?" + query);
-        fragmentsQueryBuild.addArgumentByValue("url", "http://id.vlaanderen.be/fragments");
+        fragmentsQueryBuild.addArgumentByValue("url", fragmentsRequestPath);
         fragmentsQueryBuild.addArgumentByValue("subject", subject);
         fragmentsQueryBuild.addArgumentByValue("predicate", predicate);
         fragmentsQueryBuild.addArgumentByValue("object", object);
-        fragmentsQueryBuild.addArgumentByValue("offset", offset.toString());
-        fragmentsQueryBuild.addArgumentByValue("limit", limit.toString());
+        fragmentsQueryBuild.addArgumentByValue("offset", offsetLong);
+        fragmentsQueryBuild.addArgumentByValue("limit", limitLong);
         fragmentsQueryBuild.addArgumentByValue("count", count);
-        Long previous = offset - limit;
-        Long next = offset + limit;
+        long previous = offsetLong - limitLong;
+        long next = offsetLong + limitLong;
+
         String queryWithoutPosition = ("?" + query).replaceAll("(?<=[?&;])offset=.*?($|[&;])", "").replaceAll("(?<=[?&;])limit=.*?($|[&;])", "").replaceAll("&$","");
         if (previous >= 0L) {
-            fragmentsQueryBuild.addArgumentByValue("previous", path + queryWithoutPosition + (query.equals("") ? "" : "&") + "offset=" + previous.toString() + "&limit=" + limit.toString());
+            fragmentsQueryBuild.addArgumentByValue("previous", fragmentsRequestPath + queryWithoutPosition + (query.equals("") ? "" : "&") + "offset=" + previous + "&limit=" + limitLong);
         }
         if (next <= countLong) {
-            fragmentsQueryBuild.addArgumentByValue("next", path + queryWithoutPosition + (query.equals("") ? "" : "&") + "offset=" + next.toString() + "&limit=" + limit.toString());
+            fragmentsQueryBuild.addArgumentByValue("next", fragmentsRequestPath + queryWithoutPosition + (query.equals("") ? "" : "&") + "offset=" + next + "&limit=" + limitLong);
         }
         fragmentsQueryBuild.setRepresentationClass(String.class);
-        String fragments = (String)context.issueRequest(fragmentsQueryBuild);
+        Object fragmentsQuery = context.issueRequest(fragmentsQueryBuild);
 
-        fragmentsQueryRequest = context.createRequest("active:httpPost");
-        fragmentsQueryRequest.setVerb(INKFRequestReadOnly.VERB_SOURCE);
-        fragmentsQueryRequest.addArgument("url", path);
-        HDSBuilder body = new HDSBuilder();
-        body.pushNode("query", fragments);
-        fragmentsQueryRequest.addArgumentByValue("nvp", body.getRoot());
-        fragmentsQueryRequest.addArgumentByValue("headers", acceptHeader);
+        fragmentsQueryRequest = context.createRequest("active:sparqlQuery");
+        fragmentsQueryRequest.addArgumentByValue("endpoint", endpoint);
+        fragmentsQueryRequest.addArgumentByValue("query", fragmentsQuery);
+        fragmentsQueryRequest.addArgumentByValue("accept", accept);
+        if (acceptEncoding != null) fragmentsQueryRequest.addArgumentByValue("Accept-Encoding", acceptEncoding);
+        if (acceptLang != null) fragmentsQueryRequest.addArgumentByValue("Accept-Language", acceptLang);
 
         context.logRaw(
                 INKFRequestContext.LEVEL_INFO,
-                "Received SPARQL Fragments Search Request to endpoint: " + path
+                "Received SPARQL Fragments Query Request with triple pattern \""
+                        + subject + " " + predicate + " " + object + "\" to endpoint: " + endpoint
         );
 
         response = context.issueRequestForResponse(fragmentsQueryRequest);
         context.createResponseFrom(response);
+    }
+
+    private <T> T getArg(String identifier, Class<T> classType, INKFRequestContext context) throws NKFException{
+        T arg;
+        try {
+            if (context.exists(identifier))
+                arg = context.source(identifier, classType);
+            else throw new NKFException("The request does include the required argument: " + identifier);
+        } catch (Exception e) {
+            throw new NKFException("An exception occurred when getting the required argument: " + identifier);
+        }
+        return arg;
+    }
+
+    private <T> T getArg(String identifier, T defaultValue, Class<T> classType, INKFRequestContext context) throws NKFException{
+        T arg;
+        try {
+            if (context.exists(identifier))
+                arg = context.source(identifier, classType);
+            else arg = defaultValue;
+        } catch (Exception e) {
+            arg = defaultValue;
+            return  arg;
+        }
+        return arg;
+    }
+
+    private String uriify(String literal, String defaultValue, List<Character> patterns) {
+        if (literal.equals("")) {
+            literal = defaultValue;
+        }
+        else {
+            char first = literal.charAt(0);
+            if (!patterns.contains(first)) {
+                literal = "<" + literal + ">";
+            }
+        }
+        return literal;
+    }
+
+    private long objToLong(Object numObj) throws NKFException{
+        long numLong = 0L;
+        if (numObj instanceof Long) {
+            numLong = (Long)numObj;
+        }
+        else if (numObj instanceof String) {
+            try {
+                numLong = Long.parseLong((String)numObj);
+            } catch (Exception e) {
+                throw new NKFException("An exception occurred when converting " + numObj.toString() + " to Long type!");
+            }
+        }
+        else if (numObj instanceof Integer) {
+            numLong = ((Integer) numObj).longValue();
+        }
+        else throw new NKFException("An exception occurred when converting " + numObj.toString() + " to Long type!");
+        return numLong;
     }
 }

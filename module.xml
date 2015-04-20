@@ -33,6 +33,7 @@
       <regex>res:/resources/xsl/.*</regex>
     </fileset>
     <literal type="string" uri="sparql:endpoint">http://localhost:3030/ds/query</literal>
+    <literal type="string" uri="sparql:fragmentsRequestPath">http://id.vlaanderen.be/fragments</literal>
     <accessor>
       <grammar>
         <active>
@@ -68,6 +69,7 @@
         <active>
           <identifier>active:fragmentsQuery</identifier>
           <argument name="endpoint" min="0" max="1"/>
+          <argument name="dataset" min="0" max="1"/>
           <argument name="subject" min="0" max="1"/>
           <argument name="predicate" min="0" max="1"/>
           <argument name="object" min="0" max="1"/>
