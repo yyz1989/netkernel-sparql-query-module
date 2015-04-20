@@ -24,7 +24,7 @@
       <regex>res:/etc/system/SimpleDynamicImportHook.xml</regex>
     </fileset>
     <fileset>
-      <regex>res:/etc/system/DefaultConnection.xml</regex>
+      <regex>res:/etc/system/DefaultHttpCredentials.xml</regex>
     </fileset>
     <fileset>
       <regex>res:/resources/freemarker/.*</regex>
@@ -32,6 +32,55 @@
     <fileset>
       <regex>res:/resources/xsl/.*</regex>
     </fileset>
+    <literal type="string" uri="sparql:endpoint">http://localhost:3030/ds/query</literal>
+    <accessor>
+      <grammar>
+        <active>
+          <identifier>active:sparqlQuery</identifier>
+          <argument name="endpoint" min="0" max="1"/>
+          <argument name="operation" min="0" max="1"/>
+          <argument name="method" min="0" max="1"/>
+          <argument name="query" min="0" max="1"/>
+          <argument name="accept" min="0" max="1"/>
+          <argument name="acceptencoding" min="0" max="1"/>
+          <argument name="acceptlang" min="0" max="1"/>
+          <varargs/>
+        </active>
+      </grammar>
+      <class>be.proxml.module.sparql.SparqlQueryAccessor</class>
+    </accessor>
+    <accessor>
+      <grammar>
+        <active>
+          <identifier>active:keywordSearch</identifier>
+          <argument name="endpoint" min="0" max="1"/>
+          <argument name="query" min="0" max="1"/>
+          <argument name="accept" min="0" max="1"/>
+          <argument name="acceptencoding" min="0" max="1"/>
+          <argument name="acceptlang" min="0" max="1"/>
+          <varargs/>
+        </active>
+      </grammar>
+      <class>be.proxml.module.sparql.KeywordSearchAccessor</class>
+    </accessor>
+    <accessor>
+      <grammar>
+        <active>
+          <identifier>active:fragmentsQuery</identifier>
+          <argument name="endpoint" min="0" max="1"/>
+          <argument name="subject" min="0" max="1"/>
+          <argument name="predicate" min="0" max="1"/>
+          <argument name="object" min="0" max="1"/>
+          <argument name="limit" min="0" max="1"/>
+          <argument name="offset" min="0" max="1"/>
+          <argument name="accept" min="0" max="1"/>
+          <argument name="acceptencoding" min="0" max="1"/>
+          <argument name="acceptlang" min="0" max="1"/>
+          <varargs/>
+        </active>
+      </grammar>
+      <class>be.proxml.module.sparql.FragmentsQueryAccessor</class>
+    </accessor>
     <overlay>
       <prototype>RESTOverlay</prototype>
       <config>
@@ -46,89 +95,31 @@
                 <rest>
                   <method>GET,POST</method>
                   <simple>query</simple>
-                  <!--<produces>application/sparql-results+json</produces>
-                      <consumes>application/x-www-form-urlencoded</consumes>-->
                 </rest>
               </meta>
               <grammar>
                 <active>
-                  <identifier>active:sparqlQuery</identifier>
-                  <argument name="endpoint" min="0" max="1"/>
-                  <argument name="requestpath" min="0" max="1"/>
-                  <argument name="operation" min="0" max="1"/>
-                  <argument name="httpmethod" min="0" max="1"/>
-                  <argument name="query" min="0" max="1"/>
-                  <argument name="accept" min="0" max="1"/>
-                  <argument name="acceptencoding" min="0" max="1"/>
-                  <argument name="acceptlang" min="0" max="1"/>
-                  <varargs/>
+                  <identifier>active:sparqlQueryRest</identifier>
                 </active>
               </grammar>
               <request>
-                <identifier>active:java</identifier>
-                <argument name="class">be.proxml.module.sparql.SparqlQueryAccessor</argument>
-                <argument method="as-string" name="endpoint">
-                  arg:endpoint
-                </argument>
-                <argument method="as-string" name="requestpath">
-                  arg:requestpath
-                </argument>
-                <argument method="as-string" name="operation">
-                  arg:operation
-                </argument>
-                <argument method="as-string" name="httpmethod">
-                  arg:httpmethod
-                </argument>
-                <argument method="as-string" name="query">
-                  arg:query
-                </argument>
-                <argument method="as-string" name="accept">
-                  arg:accept
-                </argument>
-                <argument method="as-string" name="acceptencoding">
-                  arg:acceptencoding
-                </argument>
-                <argument method="as-string" name="acceptlang">
-                  arg:acceptlang
-                </argument>
-                <varargs/>
+                <identifier>active:sparqlQuery</identifier>            
               </request>
             </endpoint>
             <endpoint>
               <meta>
                 <rest>
-                  <method>GET</method>
+                  <method>GET,POST</method>
                   <simple>search</simple>
-                  <!--<produces>application/sparql-results+json</produces>
-                      <consumes>application/x-www-form-urlencoded</consumes>-->
                 </rest>
               </meta>
               <grammar>
                 <active>
-                  <identifier>active:keywordSearch</identifier>
-                  <argument name="endpoint" min="0" max="1"/>
-                  <argument name="requestpath" min="0" max="1"/>
-                  <argument name="query" min="0" max="1"/>
-                  <argument name="accept" min="0" max="1"/>
-                  <varargs/>
+                  <identifier>active:keywordSearchRest</identifier>
                 </active>
               </grammar>
               <request>
-                <identifier>active:java</identifier>
-                <argument name="class">be.proxml.module.sparql.KeywordSearchAccessor</argument>
-                <argument method="as-string" name="endpoint">
-                  arg:endpoint
-                </argument>
-                <argument method="as-string" name="requestpath">
-                  arg:requestpath
-                </argument>              
-                <argument method="as-string" name="query">
-                  arg:query
-                </argument>
-                <argument method="as-string" name="accept">
-                  arg:accept
-                </argument>               
-                <varargs/>
+                <identifier>active:keywordSearch</identifier>
               </request>
             </endpoint>
             <endpoint>
@@ -136,52 +127,15 @@
                 <rest>
                   <method>GET,POST</method>
                   <simple>fragments</simple>
-                  <!--<produces>application/sparql-results+json</produces>
-                      <consumes>application/x-www-form-urlencoded</consumes>-->
                 </rest>
               </meta>
               <grammar>
                 <active>
-                  <identifier>active:fragmentsQuery</identifier>
-                  <argument name="endpoint" min="0" max="1"/>
-                  <argument name="requestpath" min="0" max="1"/>
-                  <argument name="subject" min="0" max="1"/>
-                  <argument name="predicate" min="0" max="1"/>
-                  <argument name="object" min="0" max="1"/>
-                  <argument name="limit" min="0" max="1"/>
-                  <argument name="offset" min="0" max="1"/>
-                  <argument name="accept" min="0" max="1"/>
-                  <varargs/>
+                  <identifier>active:fragmentsQueryRest</identifier>
                 </active>
               </grammar>
               <request>
-                <identifier>active:java</identifier>
-                <argument name="class">be.proxml.module.sparql.FragmentsQueryAccessor</argument>
-                <argument method="as-string" name="endpoint">
-                  arg:endpoint
-                </argument>
-                <argument method="as-string" name="requestpath">
-                  arg:requestpath
-                </argument>              
-                <argument method="as-string" name="subject">
-                  arg:subject
-                </argument>
-                <argument method="as-string" name="predicate">
-                  arg:predicate
-                </argument>
-                <argument method="as-string" name="object">
-                  arg:object
-                </argument>
-                <argument method="as-string" name="limit">
-                  arg:limit
-                </argument>
-                <argument method="as-string" name="offset">
-                  arg:offset
-                </argument>
-                <argument method="as-string" name="accept">
-                  arg:accept
-                </argument>               
-                <varargs/>
+                <identifier>active:fragmentsQuery</identifier>
               </request>
             </endpoint>
           </config>
@@ -202,10 +156,11 @@
       <uri>urn:org:netkernel:lang:freemarker</uri>
     </import>
     <import>
-     
+      <private/>
       <uri>urn:org:netkernel:client:http</uri>
     </import>
     <import>
+      <private/>
       <uri>urn:org:netkernel:xml:core</uri>
     </import>
   </rootspace>
@@ -237,16 +192,16 @@
     </import>
   </rootspace>
 
-<rootspace
+  <rootspace
       name="SPARQL Query Module - Documentation"
       public="true"
       uri="urn:be:proxml:module:sparql:doc">
-<fileset>
-<regex>res:/etc/system/(Books|Docs).xml</regex>
-</fileset>
-<fileset>
-<regex>res:/resources/doc/.*</regex>
-</fileset>
-</rootspace>
+    <fileset>
+      <regex>res:/etc/system/(Books|Docs).xml</regex>
+    </fileset>
+    <fileset>
+      <regex>res:/resources/doc/.*</regex>
+    </fileset>
+  </rootspace>
 
 </module>
