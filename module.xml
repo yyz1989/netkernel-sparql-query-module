@@ -85,6 +85,22 @@
       </grammar>
       <class>be.proxml.module.sparql.FragmentsQueryAccessor</class>
     </accessor>
+    <accessor>
+      <grammar>
+        <active>
+          <identifier>active:reconciliationQuery</identifier>
+          <argument name="endpoint" min="0" max="1"/>
+          <argument name="query" min="0" max="1"/>
+          <argument name="limit" min="0" max="1"/>
+          <argument name="type" min="0" max="1"/>
+          <argument name="accept" min="0" max="1"/>
+          <argument name="acceptencoding" min="0" max="1"/>
+          <argument name="acceptlang" min="0" max="1"/>
+          <varargs/>
+        </active>
+      </grammar>
+      <class>be.proxml.module.sparql.ReconciliationAccessor</class>
+    </accessor>
     <overlay>
       <prototype>RESTOverlay</prototype>
       <config>
