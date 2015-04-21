@@ -55,8 +55,8 @@ public class KeywordSearchAccessor extends StandardAccessorImpl{
         request.addArgumentByValue("endpoint", endpoint);
         request.addArgumentByValue("query", keywordSearchQuery);
         request.addArgumentByValue("accept", accept);
-        if (acceptEncoding != null) request.addArgumentByValue("Accept-Encoding", acceptEncoding);
-        if (acceptLang != null) request.addArgumentByValue("Accept-Language", acceptLang);
+        if (acceptEncoding != null) request.addArgumentByValue("acceptencoding", acceptEncoding);
+        if (acceptLang != null) request.addArgumentByValue("acceptlang", acceptLang);
 
         context.logRaw(
                 INKFRequestContext.LEVEL_INFO,

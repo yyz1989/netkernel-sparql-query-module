@@ -136,8 +136,8 @@ public class FragmentsQueryAccessor extends StandardAccessorImpl {
         fragmentsQueryRequest.addArgumentByValue("endpoint", endpoint);
         fragmentsQueryRequest.addArgumentByValue("query", fragmentsQuery);
         fragmentsQueryRequest.addArgumentByValue("accept", accept);
-        if (acceptEncoding != null) fragmentsQueryRequest.addArgumentByValue("Accept-Encoding", acceptEncoding);
-        if (acceptLang != null) fragmentsQueryRequest.addArgumentByValue("Accept-Language", acceptLang);
+        if (acceptEncoding != null) fragmentsQueryRequest.addArgumentByValue("acceptencoding", acceptEncoding);
+        if (acceptLang != null) fragmentsQueryRequest.addArgumentByValue("acceptlang", acceptLang);
 
         context.logRaw(
                 INKFRequestContext.LEVEL_INFO,
