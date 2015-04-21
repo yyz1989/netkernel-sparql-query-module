@@ -158,6 +158,22 @@
                 <identifier>active:fragmentsQuery</identifier>
               </request>
             </endpoint>
+            <endpoint>
+              <meta>
+                <rest>
+                  <method>GET,POST</method>
+                  <simple>reconcile</simple>
+                </rest>
+              </meta>
+              <grammar>
+                <active>
+                  <identifier>active:reconciliationQueryRest</identifier>
+                </active>
+              </grammar>
+              <request>
+                <identifier>active:reconciliationQuery</identifier>
+              </request>
+            </endpoint>
           </config>
           <space>
             <import>
